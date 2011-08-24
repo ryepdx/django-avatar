@@ -70,7 +70,7 @@ class Avatar(models.Model):
     user = models.ForeignKey(User)
     primary = models.BooleanField(default=False)
     avatar = models.ImageField(max_length=1024, upload_to=avatar_file_path, blank=True)
-    date_uploaded = models.DateTimeField(default=datetime.datetime.now)
+    date_uploaded = models.DateTimeField(auto_now=True)
     
     def __unicode__(self):
         return _(u'Avatar for %s') % self.user
