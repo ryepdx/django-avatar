@@ -7,6 +7,9 @@ from django.utils.translation import ugettext as _
 from django.utils.hashcompat import md5_constructor
 from django.utils.encoding import smart_str
 from django.db.models import signals
+from django.conf import settings
+from django.core.files.storage import default_storage
+from django.core import exceptions
 
 from django.contrib.auth.models import User
 
@@ -28,6 +31,8 @@ from avatar.settings import (AVATAR_STORAGE_DIR, AVATAR_RESIZE_METHOD,
                              AVATAR_HASH_USERDIRNAMES, AVATAR_HASH_FILENAMES,
                              AVATAR_THUMB_QUALITY, AUTO_GENERATE_AVATAR_SIZES)
 
+import logging
+_log = logging.getLogger("avatar.models")
 
 def avatar_file_path(instance=None, filename=None, size=None, ext=None):
     tmppath = [AVATAR_STORAGE_DIR]
@@ -65,15 +70,38 @@ def find_extension(format):
 
     return format
 
+_avatar_storage = getattr(settings, 'AVATAR_STORAGE', None)
+def _load_avatar_storage(avatar_storage_object):
+    _log.debug("Loading Avatar storage %s", avatar_storage_object)
+    try:
+        name, storage_object = avatar_storage_object.rsplit('.', 1)
+    except ValueError:
+        raise exceptions.ImproperlyConfigured, '%s isn\'t a proper storage module' % avatar_storage_cls
+    try:
+        module = __import__(name, {}, {}, [''])
+    except ImportError, e:
+        raise exceptions.ImproperlyConfigured, 'Error importing avatar storage %s: "%s"' % (name, e)
+    try:
+        storage = getattr(module, storage_object)
+    except AttributeError:
+        raise exceptions.ImproperlyConfigured, 'Error importing avatar storage "%s" does not define a "%s" object' % (name, storage_object)
+    return storage
+
+avatar_storage = _load_avatar_storage(_avatar_storage) if _avatar_storage else default_storage
+
 class Avatar(models.Model):
     user = models.ForeignKey(User)
     primary = models.BooleanField(default=False)
+    avatar = models.ImageField(max_length=1024,
+                            upload_to=avatar_file_path,
+                            storage = avatar_storage,
+                            blank=True)
     avatar = models.ImageField(max_length=1024, upload_to=avatar_file_path, blank=True)
     date_uploaded = models.DateTimeField(default=datetime.datetime.now)
-    
+
     def __unicode__(self):
         return _(u'Avatar for %s') % self.user
-    
+
     def save(self, *args, **kwargs):
         avatars = Avatar.objects.filter(user=self.user)
         if self.pk:
@@ -86,14 +114,14 @@ class Avatar(models.Model):
             avatars.delete()
         invalidate_cache(self.user)
         super(Avatar, self).save(*args, **kwargs)
-    
+
     def delete(self, *args, **kwargs):
         invalidate_cache(self.user)
         super(Avatar, self).delete(*args, **kwargs)
-    
+
     def thumbnail_exists(self, size):
         return self.avatar.storage.exists(self.avatar_name(size))
-    
+
     def create_thumbnail(self, size, quality=None):
         # invalidate the cache of the thumbnail with the given size first
         invalidate_cache(self.user, size)
@@ -123,7 +151,7 @@ class Avatar(models.Model):
 
     def avatar_url(self, size):
         return self.avatar.storage.url(self.avatar_name(size))
-    
+
     def avatar_name(self, size):
         ext = find_extension(AVATAR_THUMB_FORMAT)
         return avatar_file_path(
