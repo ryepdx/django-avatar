@@ -96,7 +96,6 @@ class Avatar(models.Model):
                             upload_to=avatar_file_path,
                             storage = avatar_storage,
                             blank=True)
-    avatar = models.ImageField(max_length=1024, upload_to=avatar_file_path, blank=True)
     date_uploaded = models.DateTimeField(default=datetime.datetime.now)
 
     def __unicode__(self):
