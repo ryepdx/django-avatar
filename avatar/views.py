@@ -172,3 +172,30 @@ def render_primary(request, extra_context={}, user=None, size=AVATAR_DEFAULT_SIZ
         url = get_default_avatar_url()
         return HttpResponseRedirect(url)
     
+
+def render_primary_id(request, extra_context={}, user_id=None, size=AVATAR_DEFAULT_SIZE, *args, **kwargs):
+    size = int(size)
+
+    try:
+        # Order by -primary first; this means if a primary=True avatar exists
+        # it will be first, and then ordered by date uploaded, otherwise a
+        # primary=False avatar will be first.  Exactly the fallback behavior we
+        # want.
+        avatar = Avatar.objects.filter(user__id=user_id).order_by("-primary", "-date_uploaded")[0]
+    except IndexError:
+        avatar = None
+    if avatar:
+        if not avatar.thumbnail_exists(size):
+            avatar.create_thumbnail(size)
+
+    if avatar:
+        # FIXME: later, add an option to render the resized avatar dynamically
+        # instead of redirecting to an already created static file. This could
+        # be useful in certain situations, particulary if there is a CDN and
+        # we want to minimize the storage usage on our static server, letting
+        # the CDN store those files instead
+        return HttpResponseRedirect(avatar.avatar_url(size))
+    else:
+        url = get_default_avatar_url()
+        return HttpResponseRedirect(url)
+    
