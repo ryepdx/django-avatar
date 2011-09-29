@@ -37,10 +37,10 @@ _log = logging.getLogger("avatar.models")
 def avatar_file_path(instance=None, filename=None, size=None, ext=None):
     tmppath = [AVATAR_STORAGE_DIR]
     if AVATAR_HASH_USERDIRNAMES:
-        tmp = md5_constructor(instance.user.username).hexdigest()
-        tmppath.extend([tmp[0], tmp[1], instance.user.username])
+        tmp = md5_constructor(unicode(instance.user.id)).hexdigest()
+        tmppath.extend([tmp[0], tmp[1], unicode(instance.user.id)])
     else:
-        tmppath.append(instance.user.username)
+        tmppath.append(unicode(instance.user.id))
     if not filename:
         # Filename already stored in database
         filename = instance.avatar.name
