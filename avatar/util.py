@@ -4,7 +4,7 @@ from django.core.cache import cache
 from django.contrib.auth.models import User
 
 from avatar.settings import (AVATAR_DEFAULT_URL, AVATAR_CACHE_TIMEOUT,
-                             AUTO_GENERATE_AVATAR_SIZES, AVATAR_DEFAULT_SIZE)
+                             AUTO_GENERATE_AVATAR_SIZES, AVATAR_DEFAULT_SIZE, AVATAR_CHECK_IF_PRIMARY_EXISTS)
 
 cached_funcs = set()
 
@@ -73,7 +73,7 @@ def get_primary_avatar(user, size=AVATAR_DEFAULT_SIZE):
         avatar = user.avatar_set.order_by("-primary", "-date_uploaded")[0]
     except IndexError:
         avatar = None
-    if avatar:
+    if AVATAR_CHECK_IF_PRIMARY_EXISTS and avatar:
         if not avatar.thumbnail_exists(size):
             avatar.create_thumbnail(size)
     return avatar

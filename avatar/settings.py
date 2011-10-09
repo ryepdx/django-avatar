@@ -21,3 +21,4 @@ AVATAR_HASH_FILENAMES = getattr(settings, 'AVATAR_HASH_FILENAMES', False)
 AVATAR_HASH_USERDIRNAMES = getattr(settings, 'AVATAR_HASH_USERDIRNAMES', False)
 AVATAR_ALLOWED_FILE_EXTS = getattr(settings, 'AVATAR_ALLOWED_FILE_EXTS', None)
 AVATAR_CACHE_TIMEOUT = getattr(settings, 'AVATAR_CACHE_TIMEOUT', 60*60)
+AVATAR_CHECK_IF_PRIMARY_EXISTS = getattr(settings, 'AVATAR_CHECK_IF_PRIMARY_EXISTS', False) # whenever an avatar is requested, check if it actually exists
