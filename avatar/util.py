@@ -46,7 +46,10 @@ def invalidate_cache(user, size=None):
 def get_default_avatar_url():
     base_url = getattr(settings, 'STATIC_URL', None)
     if not base_url:
-        base_url = getattr(settings, 'MEDIA_URL', '')
+        if getattr(settings, 'AVATAR_DEFAULT_USE_SECURE_MEDIA_URL', True):
+            base_url = getattr(settings, 'SECURE_MEDIA_URL', '')
+        else:
+            base_url = getattr(settings, 'MEDIA_URL', '')
     # Don't use base_url if the default avatar url starts with http:// of https://
     if AVATAR_DEFAULT_URL.startswith('http://') or AVATAR_DEFAULT_URL.startswith('https://'):
         return AVATAR_DEFAULT_URL
