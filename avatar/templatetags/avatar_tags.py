@@ -17,6 +17,10 @@ register = template.Library()
 @cache_result
 @register.simple_tag
 def avatar_url(user, size=AVATAR_DEFAULT_SIZE):
+
+    if not user.is_authenticated():
+        return get_default_avatar_url()
+
     avatar = get_primary_avatar(user, size=size)
     if avatar:
         return avatar.avatar_url(size)
