@@ -71,6 +71,10 @@ def get_primary_avatar(user, size=AVATAR_DEFAULT_SIZE):
         # primary=False avatar will be first.  Exactly the fallback behavior we
         # want.
         avatar = user.avatar_set.order_by("-primary", "-date_uploaded")[0]
+        # Force .user to make one less query later in avatar.thubmnail_exists().
+        # Since we used user.avatar_set we shouldn't have any coherency problems:
+        # the user pretty much has to exist and be the correct one already.
+        avatar.user = user
     except IndexError:
         avatar = None
     if avatar:
