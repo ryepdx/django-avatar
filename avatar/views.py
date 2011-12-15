@@ -51,6 +51,12 @@ def _get_avatars(user):
         avatars = avatars[:AVATAR_MAX_AVATARS_PER_USER]
     return (avatar, avatars)
 
+
+# http://stackoverflow.com/questions/1342000/how-to-replace-non-ascii-characters-in-string
+def removeNonAscii(s): 
+    return "".join((i if ord(i)<128 else "_") for i in s)
+
+
 @login_required
 def add(request, extra_context=None, next_override=None,
         upload_form=UploadAvatarForm, *args, **kwargs):
@@ -66,6 +72,7 @@ def add(request, extra_context=None, next_override=None,
                 primary = True,
             )
             image_file = request.FILES['avatar']
+            image_file.name = removeNonAscii(image_file.name)
             avatar.avatar.save(image_file.name, image_file)
             avatar.save()
             request.user.message_set.create(
