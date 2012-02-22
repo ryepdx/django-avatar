@@ -26,7 +26,8 @@ from avatar.util import invalidate_cache
 from avatar.settings import (AVATAR_STORAGE_DIR, AVATAR_RESIZE_METHOD,
                              AVATAR_MAX_AVATARS_PER_USER, AVATAR_THUMB_FORMAT,
                              AVATAR_HASH_USERDIRNAMES, AVATAR_HASH_FILENAMES,
-                             AVATAR_THUMB_QUALITY, AUTO_GENERATE_AVATAR_SIZES)
+                             AVATAR_THUMB_QUALITY, AUTO_GENERATE_AVATAR_SIZES,
+                             AVATAR_SINGLE_AVATAR)
 
 
 def avatar_file_path(instance=None, filename=None, size=None, ext=None):
@@ -78,12 +79,15 @@ class Avatar(models.Model):
         avatars = Avatar.objects.filter(user=self.user)
         if self.pk:
             avatars = avatars.exclude(pk=self.pk)
-        if AVATAR_MAX_AVATARS_PER_USER > 1:
-            if self.primary:
-                avatars = avatars.filter(primary=True)
-                avatars.update(primary=False)
-        else:
+        if AVATAR_SINGLE_AVATAR:
             avatars.delete()
+        else:
+            if AVATAR_MAX_AVATARS_PER_USER > 1:
+                if self.primary:
+                    avatars = avatars.filter(primary=True)
+                    avatars.update(primary=False)
+            else:
+                avatars.delete()
         invalidate_cache(self.user)
         super(Avatar, self).save(*args, **kwargs)
     
