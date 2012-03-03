@@ -2,6 +2,7 @@ import datetime
 import os
 
 from django.db import models
+from django.conf import settings
 from django.core.files.base import ContentFile
 from django.utils.translation import ugettext as _
 from django.utils.hashcompat import md5_constructor
@@ -26,7 +27,8 @@ from avatar.util import invalidate_cache
 from avatar.settings import (AVATAR_STORAGE_DIR, AVATAR_RESIZE_METHOD,
                              AVATAR_MAX_AVATARS_PER_USER, AVATAR_THUMB_FORMAT,
                              AVATAR_HASH_USERDIRNAMES, AVATAR_HASH_FILENAMES,
-                             AVATAR_THUMB_QUALITY, AUTO_GENERATE_AVATAR_SIZES)
+                             AVATAR_THUMB_QUALITY, AUTO_GENERATE_AVATAR_SIZES,
+                             AVATAR_URL_PATH)
 
 
 def avatar_file_path(instance=None, filename=None, size=None, ext=None):
@@ -98,7 +100,7 @@ class Avatar(models.Model):
         # invalidate the cache of the thumbnail with the given size first
         invalidate_cache(self.user, size)
         try:
-            orig = self.avatar.storage.open(self.avatar.name, 'rb').read()
+            orig = self.avatar.storage.open(settings.MEDIA_ROOT + self.avatar.name, 'rb').read()
             image = Image.open(StringIO(orig))
         except IOError:
             return # What should we do here?  Render a "sorry, didn't work" img?
@@ -121,8 +123,11 @@ class Avatar(models.Model):
             thumb_file = ContentFile(orig)
         thumb = self.avatar.storage.save(self.avatar_name(size), thumb_file)
 
-    def avatar_url(self, size):
-        return self.avatar.storage.url(self.avatar_name(size))
+    def avatar_url(self, size=None):
+        if size:
+            return AVATAR_URL_PATH + self.avatar.storage.url(self.avatar_name(size)).lstrip('/')
+        else:
+            return AVATAR_URL_PATH + self.avatar.url
     
     def avatar_name(self, size):
         ext = find_extension(AVATAR_THUMB_FORMAT)
