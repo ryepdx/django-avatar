@@ -43,6 +43,10 @@ that are required.  A minimal integration can work like this:
     
         {% avatar user 65 %}
 
+    This template tag assumes you have MEDIA_URL defined in your settings.py, and 
+    creates the URL by concatenating MEDIA_URL and the relative path of the profile
+    image with respect to MEDIA_ROOT.
+
 5.  Optionally customize ``avatar/change.html`` and
     ``avatar/confirm_delete.html`` to conform to your site's look and feel.
 
