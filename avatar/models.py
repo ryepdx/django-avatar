@@ -27,8 +27,7 @@ from avatar.util import invalidate_cache
 from avatar.settings import (AVATAR_STORAGE_DIR, AVATAR_RESIZE_METHOD,
                              AVATAR_MAX_AVATARS_PER_USER, AVATAR_THUMB_FORMAT,
                              AVATAR_HASH_USERDIRNAMES, AVATAR_HASH_FILENAMES,
-                             AVATAR_THUMB_QUALITY, AUTO_GENERATE_AVATAR_SIZES,
-                             AVATAR_URL_PATH)
+                             AVATAR_THUMB_QUALITY, AUTO_GENERATE_AVATAR_SIZES)
 
 
 def avatar_file_path(instance=None, filename=None, size=None, ext=None):
@@ -125,9 +124,9 @@ class Avatar(models.Model):
 
     def avatar_url(self, size=None):
         if size:
-            return AVATAR_URL_PATH + self.avatar.storage.url(self.avatar_name(size)).lstrip('/')
+            return self.avatar.storage.url(self.avatar_name(size)).lstrip('/')
         else:
-            return AVATAR_URL_PATH + self.avatar.url
+            return self.avatar.url
     
     def avatar_name(self, size):
         ext = find_extension(AVATAR_THUMB_FORMAT)
