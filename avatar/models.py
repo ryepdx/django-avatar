@@ -27,7 +27,8 @@ from avatar.util import invalidate_cache
 from avatar.settings import (AVATAR_STORAGE_DIR, AVATAR_RESIZE_METHOD,
                              AVATAR_MAX_AVATARS_PER_USER, AVATAR_THUMB_FORMAT,
                              AVATAR_HASH_USERDIRNAMES, AVATAR_HASH_FILENAMES,
-                             AVATAR_THUMB_QUALITY, AUTO_GENERATE_AVATAR_SIZES)
+                             AVATAR_THUMB_QUALITY, AUTO_GENERATE_AVATAR_SIZES, 
+                             AVATAR_USERDIRNAMES_AS_ID)
 
 
 def avatar_file_path(instance=None, filename=None, size=None, ext=None):
@@ -35,6 +36,8 @@ def avatar_file_path(instance=None, filename=None, size=None, ext=None):
     if AVATAR_HASH_USERDIRNAMES:
         tmp = md5_constructor(instance.user.username).hexdigest()
         tmppath.extend([tmp[0], tmp[1], instance.user.username])
+    elif AVATAR_USERDIRNAMES_AS_ID:
+        tmppath.extend(str(instance.user.id))
     else:
         tmppath.append(instance.user.username)
     if not filename:
