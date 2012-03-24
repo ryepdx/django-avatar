@@ -1,5 +1,6 @@
 import datetime
 import os
+import sys
 
 from django.db import models
 from django.conf import settings
@@ -28,7 +29,7 @@ from avatar.settings import (AVATAR_STORAGE_DIR, AVATAR_RESIZE_METHOD,
                              AVATAR_MAX_AVATARS_PER_USER, AVATAR_THUMB_FORMAT,
                              AVATAR_HASH_USERDIRNAMES, AVATAR_HASH_FILENAMES,
                              AVATAR_THUMB_QUALITY, AUTO_GENERATE_AVATAR_SIZES, 
-                             AVATAR_USERDIRNAMES_AS_ID)
+                             AVATAR_USERDIRNAMES_AS_ID, AVATAR_STORAGE)
 
 
 def avatar_file_path(instance=None, filename=None, size=None, ext=None):
@@ -74,9 +75,15 @@ class Avatar(models.Model):
     primary = models.BooleanField(default=False)
     avatar = models.ImageField(max_length=1024, upload_to=avatar_file_path, blank=True)
     date_uploaded = models.DateTimeField(default=datetime.datetime.now)
-    
+
     def __unicode__(self):
         return _(u'Avatar for %s') % self.user
+
+    def get_storage(self):
+        (module, cls) = AVATAR_STORAGE.rsplit('.', 1) 
+        __import__(module)
+        StorageClass = getattr(sys.modules[module], cls)
+        return StorageClass()
     
     def save(self, *args, **kwargs):
         avatars = Avatar.objects.filter(user=self.user)
@@ -96,13 +103,13 @@ class Avatar(models.Model):
         super(Avatar, self).delete(*args, **kwargs)
     
     def thumbnail_exists(self, size):
-        return self.avatar.storage.exists(self.avatar_name(size))
+        return self.get_storage().exists(self.avatar_name(size))
     
     def create_thumbnail(self, size, quality=None):
         # invalidate the cache of the thumbnail with the given size first
         invalidate_cache(self.user, size)
         try:
-            orig = self.avatar.storage.open(settings.MEDIA_ROOT + self.avatar.name, 'rb').read()
+            orig = self.get_storage().open(self.avatar.name, 'rb').read()
             image = Image.open(StringIO(orig))
         except IOError:
             return # What should we do here?  Render a "sorry, didn't work" img?
@@ -123,11 +130,11 @@ class Avatar(models.Model):
             thumb_file = ContentFile(thumb.getvalue())
         else:
             thumb_file = ContentFile(orig)
-        thumb = self.avatar.storage.save(self.avatar_name(size), thumb_file)
+        thumb = self.get_storage().save(self.avatar_name(size), thumb_file)
 
     def avatar_url(self, size=None):
         if size:
-            return self.avatar.storage.url(self.avatar_name(size)).lstrip('/')
+            return self.get_storage().url(self.avatar_name(size)).lstrip('/')
         else:
             return self.avatar.url
     

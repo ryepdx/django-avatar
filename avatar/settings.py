@@ -22,3 +22,4 @@ AVATAR_HASH_USERDIRNAMES = getattr(settings, 'AVATAR_HASH_USERDIRNAMES', False)
 AVATAR_USERDIRNAMES_AS_ID = getattr(settings, 'AVATAR_USERDIRNAMES_AS_ID', False)
 AVATAR_ALLOWED_FILE_EXTS = getattr(settings, 'AVATAR_ALLOWED_FILE_EXTS', None)
 AVATAR_CACHE_TIMEOUT = getattr(settings, 'AVATAR_CACHE_TIMEOUT', 60*60)
+AVATAR_STORAGE = getattr(settings, 'AVATAR_STORAGE', 'django.core.files.storage.DefaultStorage') # Choose the storage backend
