@@ -62,22 +62,23 @@ def add(request, extra_context=None, next_override=None,
         upload_form=UploadAvatarForm, *args, **kwargs):
     if extra_context is None:
         extra_context = {}
-    avatar, avatars = _get_avatars(request.user)
+    user = kwargs.pop('user',None) or request.user    
+    avatar, avatars = _get_avatars(user)
     upload_avatar_form = upload_form(request.POST or None,
-        request.FILES or None, user=request.user)
+        request.FILES or None, user=user)
     if request.method == "POST" and 'avatar' in request.FILES:
         if upload_avatar_form.is_valid():
             avatar = Avatar(
-                user = request.user,
+                user = user,
                 primary = True,
             )
             image_file = request.FILES['avatar']
             image_file.name = removeNonAscii(image_file.name)
             avatar.avatar.save(image_file.name, image_file)
             avatar.save()
-            request.user.message_set.create(
+            user.message_set.create(
                 message=_("Successfully uploaded a new avatar."))
-            avatar_updated.send(sender=Avatar, user=request.user, avatar=avatar)
+            avatar_updated.send(sender=Avatar, user=user, avatar=avatar)
             return HttpResponseRedirect(next_override or _get_next(request))
     return render_to_response(
             'avatar/add.html',
