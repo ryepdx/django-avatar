@@ -38,7 +38,7 @@ def avatar_file_path(instance=None, filename=None, size=None, ext=None):
         tmp = md5_constructor(instance.user.username).hexdigest()
         tmppath.extend([tmp[0], tmp[1], instance.user.username])
     elif AVATAR_USERDIRNAMES_AS_ID:
-        tmppath.extend(str(instance.user.id))
+        tmppath.append(str(instance.user.id))
     else:
         tmppath.append(instance.user.username)
     if not filename:
