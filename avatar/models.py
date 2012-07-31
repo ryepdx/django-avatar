@@ -75,6 +75,7 @@ class Avatar(models.Model):
     primary = models.BooleanField(default=False)
     avatar = models.ImageField(max_length=1024, upload_to=avatar_file_path, blank=True)
     date_uploaded = models.DateTimeField(default=datetime.datetime.now)
+    existing_thumbnail_sizes = models.CommaSeparatedIntegerField(max_length=1024, blank=True)
 
     def __unicode__(self):
         return _(u'Avatar for %s') % self.user
@@ -103,7 +104,10 @@ class Avatar(models.Model):
         super(Avatar, self).delete(*args, **kwargs)
     
     def thumbnail_exists(self, size):
-        return self.get_storage().exists(self.avatar_name(size))
+        if self.existing_thumbnail_sizes:
+            if str(size) in self.existing_thumbnail_sizes.split(','):
+                return True
+        return False
     
     def create_thumbnail(self, size, quality=None):
         # invalidate the cache of the thumbnail with the given size first
@@ -131,6 +135,13 @@ class Avatar(models.Model):
         else:
             thumb_file = ContentFile(orig)
         thumb = self.get_storage().save(self.avatar_name(size), thumb_file)
+
+        # Save this image size in the database so we know what thumbnails have already been created
+        size_string = str(size)
+        if self.existing_thumbnail_sizes:
+            size_string = ',' + size_string
+        self.existing_thumbnail_sizes += size_string
+        self.save()
 
     def avatar_url(self, size=None):
         if size:
