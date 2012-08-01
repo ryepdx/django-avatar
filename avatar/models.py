@@ -109,7 +109,15 @@ class Avatar(models.Model):
                 return True
         return False
     
-    def create_thumbnail(self, size, quality=None):
+    def create_thumbnail(self, size, quality=None, square=False):
+        """ Creates a thumbnail for this avatar. 
+        
+            If Square is False, the image will retain it's original proportions.
+            Also, when square is false, size then dictates the height of the new image
+        """
+        if self.primary:
+            square = True
+
         # invalidate the cache of the thumbnail with the given size first
         invalidate_cache(self.user, size)
         try:
@@ -120,15 +128,22 @@ class Avatar(models.Model):
         quality = quality or AVATAR_THUMB_QUALITY
         (w, h) = image.size
         if w != size or h != size:
-            if w > h:
-                diff = (w - h) / 2
-                image = image.crop((diff, 0, w - diff, h))
+            if square:
+                if w > h:
+                    diff = (w - h) / 2
+                    image = image.crop((diff, 0, w - diff, h))
+                else:
+                    diff = (h - w) / 2
+                    image = image.crop((0, diff, w, h - diff))
+                w = size
+                h = size
             else:
-                diff = (h - w) / 2
-                image = image.crop((0, diff, w, h - diff))
+                scaling_ratio = 1.0*size/h
+                h = int(size)
+                w = int(scaling_ratio * w)
             if image.mode != "RGB":
                 image = image.convert("RGB")
-            image = image.resize((size, size), AVATAR_RESIZE_METHOD)
+            image = image.resize((w, h), AVATAR_RESIZE_METHOD)
             thumb = StringIO()
             image.save(thumb, AVATAR_THUMB_FORMAT, quality=quality)
             thumb_file = ContentFile(thumb.getvalue())

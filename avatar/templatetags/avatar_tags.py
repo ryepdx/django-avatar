@@ -14,7 +14,6 @@ from avatar.util import get_primary_avatar, get_default_avatar_url, cache_result
 register = template.Library()
 
 
-@cache_result
 @register.simple_tag
 def avatar_url(user, size=AVATAR_DEFAULT_SIZE):
     avatar = get_primary_avatar(user, size=size)
@@ -36,7 +35,6 @@ def avatar_url(user, size=AVATAR_DEFAULT_SIZE):
         else:
             return get_default_avatar_url()
 
-@cache_result
 @register.simple_tag
 def avatar(user, size=AVATAR_DEFAULT_SIZE):
     if not isinstance(user, User):
@@ -53,7 +51,6 @@ def avatar(user, size=AVATAR_DEFAULT_SIZE):
     return """<img src="%s" alt="%s" width="%s" height="%s" />""" % (url, alt,
         size, size)
 
-@cache_result
 @register.simple_tag
 def primary_avatar(user, size=AVATAR_DEFAULT_SIZE):
     """
@@ -67,7 +64,6 @@ def primary_avatar(user, size=AVATAR_DEFAULT_SIZE):
     return """<img src="%s" alt="%s" width="%s" height="%s" />""" % (url, alt,
         size, size)
 
-@cache_result
 @register.simple_tag
 def render_avatar(avatar, size=AVATAR_DEFAULT_SIZE):
     if not avatar.thumbnail_exists(size):
