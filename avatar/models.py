@@ -4,13 +4,15 @@ import sys
 
 from django.db import models
 from django.conf import settings
+from django.contrib.auth.models import User
 from django.core.files.base import ContentFile
 from django.utils.translation import ugettext as _
 from django.utils.hashcompat import md5_constructor
 from django.utils.encoding import smart_str
 from django.db.models import signals
 
-from django.contrib.auth.models import User
+from avatar.tasks import create_default_thumbnails
+
 
 try:
     from cStringIO import StringIO
@@ -87,6 +89,7 @@ class Avatar(models.Model):
         return StorageClass()
     
     def save(self, *args, **kwargs):
+        square = kwargs.pop('square', False)
         avatars = Avatar.objects.filter(user=self.user)
         if self.pk:
             avatars = avatars.exclude(pk=self.pk)
@@ -97,7 +100,12 @@ class Avatar(models.Model):
         else:
             avatars.delete()
         invalidate_cache(self.user)
+        is_new = False
+        if not self.id:
+            is_new = True
         super(Avatar, self).save(*args, **kwargs)
+        if is_new:
+            create_default_thumbnails.delay(self, created=True, square=square)
     
     def delete(self, *args, **kwargs):
         invalidate_cache(self.user)
@@ -171,11 +179,3 @@ class Avatar(models.Model):
             size=size,
             ext=ext
         )
-
-
-def create_default_thumbnails(instance=None, created=False, **kwargs):
-    if created:
-        for size in AUTO_GENERATE_AVATAR_SIZES:
-            instance.create_thumbnail(size)
-
-signals.post_save.connect(create_default_thumbnails, sender=Avatar)
