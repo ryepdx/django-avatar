@@ -6,7 +6,6 @@ from avatar.templatetags.avatar_tags import avatar
 
 
 class AvatarAdmin(admin.ModelAdmin):
-    raw_id_fields = ('user',)
     list_display = ('get_avatar', 'user', 'primary', "date_uploaded")
     list_filter = ('primary',)
     search_fields = ('user__username',)
@@ -18,4 +17,11 @@ class AvatarAdmin(admin.ModelAdmin):
     get_avatar.short_description = _('Avatar')
     get_avatar.allow_tags = True
 
+<<<<<<< HEAD
+class AvatarAdmin(admin.ModelAdmin):
+    raw_id_fields = ('user',)
+
+
+=======
+>>>>>>> gidsy/master
 admin.site.register(Avatar, AvatarAdmin)

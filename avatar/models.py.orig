@@ -1,5 +1,6 @@
 import datetime
 import os
+import sys
 
 from django.db import models
 from django.conf import settings
@@ -12,6 +13,7 @@ from django.utils.encoding import smart_str
 from django.db.models import signals
 
 from avatar.tasks import create_default_thumbnails
+from django.contrib.auth.models import User
 
 try:
     from cStringIO import StringIO
@@ -25,15 +27,26 @@ try:
 except ImportError:
     import Image
 
+try:
+    from django.utils.timezone import now
+except ImportError:
+    now = datetime.datetime.now
+
 from avatar.util import invalidate_cache
 from avatar.settings import (AVATAR_STORAGE_DIR, AVATAR_RESIZE_METHOD,
                              AVATAR_MAX_AVATARS_PER_USER, AVATAR_THUMB_FORMAT,
                              AVATAR_HASH_USERDIRNAMES, AVATAR_HASH_FILENAMES,
+<<<<<<< HEAD
                              AVATAR_THUMB_QUALITY, AUTO_GENERATE_AVATAR_SIZES, 
-                             AVATAR_USERDIRNAMES_AS_ID, AVATAR_STORAGE,
+                             AVATAR_USERDIRNAMES_AS_ID, AVATAR_STORAGE)
                              AVATAR_DEFAULT_SIZE, AVATAR_SINGLE_AVATAR)
+=======
+                             AVATAR_THUMB_QUALITY, AUTO_GENERATE_AVATAR_SIZES,
+                             AVATAR_STORAGE)
 
 avatar_storage = get_storage_class(AVATAR_STORAGE)()
+>>>>>>> gidsy/master
+
 
 def avatar_file_path(instance=None, filename=None, size=None, ext=None):
     tmppath = [AVATAR_STORAGE_DIR]
@@ -76,13 +89,24 @@ def find_extension(format):
 class Avatar(models.Model):
     user = models.ForeignKey(User)
     primary = models.BooleanField(default=False)
+<<<<<<< HEAD
     avatar = models.ImageField(max_length=1024, upload_to=avatar_file_path, blank=True)
-	upload_to=avatar_file_path, storage=avatar_storage, blank=True)
     date_uploaded = models.DateTimeField(auto_now=True)
     existing_thumbnail_sizes = models.CommaSeparatedIntegerField(max_length=1024, blank=True)
+=======
+    avatar = models.ImageField(max_length=1024,
+        upload_to=avatar_file_path, storage=avatar_storage, blank=True)
+    date_uploaded = models.DateTimeField(default=now)
+>>>>>>> gidsy/master
     
-    def __unicode__(self):
+def __unicode__(self):
         return _(u'Avatar for %s') % self.user
+
+    def get_storage(self):
+        (module, cls) = AVATAR_STORAGE.rsplit('.', 1) 
+        __import__(module)
+        StorageClass = getattr(sys.modules[module], cls)
+        return StorageClass()
     
     def save(self, *args, **kwargs):
         square = kwargs.pop('square', False)
@@ -111,21 +135,10 @@ class Avatar(models.Model):
         super(Avatar, self).delete(*args, **kwargs)
     
     def thumbnail_exists(self, size):
-		if self.existing_thumbnail_sizes:
+        if self.existing_thumbnail_sizes:
             if str(size) in self.existing_thumbnail_sizes.split(','):
                 return True
         return False
-	
-	# This is the older version of thumbnail_exists.
-	# It requires a little more I/O than the version here,
-	# but if database size for the avatars table becomes
-	# an issue, you can always return to this version and
-	# delete the existing_thumbnail_sizes column.
-	# It's a tradeoff and I'm not sure which is better, so
-	# I'm just leaving this here for future developers
-	# in case they disagree with my decision.
-	#def thumbnail_exists(self, size):
-    #    return self.avatar.storage.exists(self.avatar_name(size))
     
     def create_thumbnail(self, size, quality=None, square=False):
         """ Creates a thumbnail for this avatar. 
@@ -139,12 +152,7 @@ class Avatar(models.Model):
         # invalidate the cache of the thumbnail with the given size first
         invalidate_cache(self.user, size)
         try:
-			# The line below relies on the "upload_to" field.
-			# If you want to get rid of that column, one of the things you will
-			# need to do is comment out the line below and uncomment the line
-			# after it.
-            orig = self.avatar.storage.open(self.avatar.name, 'rb').read()
-            #orig = avatar_storage.open(self.avatar.name, 'rb').read()
+            orig = self.get_storage().open(self.avatar.name, 'rb').read()
             image = Image.open(StringIO(orig))
         except IOError:
             return # What should we do here?  Render a "sorry, didn't work" img?
@@ -172,12 +180,7 @@ class Avatar(models.Model):
             thumb_file = ContentFile(thumb.getvalue())
         else:
             thumb_file = ContentFile(orig)
-
-		# See above comment about the "upload_to" field.
-		# Commenting out the line below and uncommenting
-		# the line below it will allow you to remove it.
-        thumb = self.avatar.storage.save(self.avatar_name(size), thumb_file)
-		#thumb = avatar_storage.save(self.avatar_name(size), thumb_file)
+        thumb = self.get_storage().save(self.avatar_name(size), thumb_file)
 
         # Save this image size in the database so we know what thumbnails have already been created
         size_string = str(size)
@@ -188,7 +191,7 @@ class Avatar(models.Model):
 
     def avatar_url(self, size=None):
         if size:
-            return self.avatar.storage.url(self.avatar_name(size)).lstrip('/')
+            return self.get_storage().url(self.avatar_name(size)).lstrip('/')
         else:
             return self.avatar.url
 
