@@ -14,3 +14,11 @@ Why another fork?
 I wanted users to have just one avatar on my website, so I decided to look at the commit graph on Github to see if anyone had already implemented that functionality. I noticed someone had, but I also noticed that this project hadn't been touched in over a year by the maintainer listed on PyPi and was being more vigorously kept up by tens of other developers, many of whom (judging by the commit comments) were fixing a number of the same problems over and over.
 
 So I picked what seemed to me the most vigorously maintained fork and forked it with the intention of merging in as many as the other 90+ forks as possible.
+
+DANGER
+------
+16:20 August 12, 2012
+
+I haven't tested this code since the last merge, so there may be tons of things broken. But time constraints dictate I stop for now, so I've pushed it. If it works, awesome. If not, feel free to push some fixes and contact me to get them merged in.
+
+Thanks!
