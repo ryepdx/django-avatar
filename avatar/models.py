@@ -32,7 +32,7 @@ from avatar.settings import (AVATAR_STORAGE_DIR, AVATAR_RESIZE_METHOD,
                              AVATAR_HASH_USERDIRNAMES, AVATAR_HASH_FILENAMES,
                              AVATAR_THUMB_QUALITY, AUTO_GENERATE_AVATAR_SIZES, 
                              AVATAR_USERDIRNAMES_AS_ID, AVATAR_STORAGE)
-                             AVATAR_SINGLE_AVATAR)
+                             AVATAR_DEFAULT_SIZE, AVATAR_SINGLE_AVATAR)
 
 
 def avatar_file_path(instance=None, filename=None, size=None, ext=None):
@@ -77,10 +77,10 @@ class Avatar(models.Model):
     user = models.ForeignKey(User)
     primary = models.BooleanField(default=False)
     avatar = models.ImageField(max_length=1024, upload_to=avatar_file_path, blank=True)
-    date_uploaded = models.DateTimeField(default=datetime.datetime.now)
+    date_uploaded = models.DateTimeField(auto_now=True)
     existing_thumbnail_sizes = models.CommaSeparatedIntegerField(max_length=1024, blank=True)
-
-    def __unicode__(self):
+    
+def __unicode__(self):
         return _(u'Avatar for %s') % self.user
 
     def get_storage(self):
@@ -175,6 +175,9 @@ class Avatar(models.Model):
             return self.get_storage().url(self.avatar_name(size)).lstrip('/')
         else:
             return self.avatar.url
+
+    def get_absolute_url(self, size=AVATAR_DEFAULT_SIZE):
+        return self.avatar_url(size)
     
     def avatar_name(self, size):
         ext = find_extension(AVATAR_THUMB_FORMAT)

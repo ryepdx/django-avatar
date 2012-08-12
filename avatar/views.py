@@ -1,3 +1,4 @@
+import urlparse
 from django.contrib import messages
 from django.http import HttpResponseRedirect
 from django.shortcuts import render_to_response
@@ -13,6 +14,11 @@ from avatar.settings import AVATAR_MAX_AVATARS_PER_USER, AVATAR_DEFAULT_SIZE, AV
 from avatar.signals import avatar_updated
 from avatar.util import get_primary_avatar, get_default_avatar_url
 
+def _validate_next_parameter(request, next):
+    parsed = urlparse.urlparse(next)
+    if parsed and parsed.path:
+        return parsed.path
+    return None
 
 def _get_next(request):
     """
@@ -30,6 +36,8 @@ def _get_next(request):
     """
     next = request.POST.get('next', request.GET.get('next',
         request.META.get('HTTP_REFERER', None)))
+    if next:
+        next = _validate_next_parameter(request, next)
     if not next:
         next = request.path
     return next

@@ -21,6 +21,9 @@ def avatar_img(avatar, size):
 class UploadAvatarForm(forms.Form):
 
     avatar = forms.ImageField()
+    ALLOWED_FILE_EXTS = AVATAR_ALLOWED_FILE_EXTS
+    MAX_SIZE = AVATAR_MAX_SIZE
+    MAX_PER_USER = AVATAR_MAX_AVATARS_PER_USER
     
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user')
