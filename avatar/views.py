@@ -1,15 +1,15 @@
+from django.contrib import messages
 from django.http import HttpResponseRedirect
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.utils.translation import ugettext as _
 from django.conf import settings
 
-from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 
 from avatar.forms import PrimaryAvatarForm, DeleteAvatarForm, UploadAvatarForm
 from avatar.models import Avatar
-from avatar.settings import AVATAR_MAX_AVATARS_PER_USER, AVATAR_DEFAULT_SIZE
+from avatar.settings import AVATAR_MAX_AVATARS_PER_USER, AVATAR_DEFAULT_SIZE, AVATAR_SINGLE_AVATAR
 from avatar.signals import avatar_updated
 from avatar.util import get_primary_avatar, get_default_avatar_url
 
@@ -62,6 +62,8 @@ def add(request, extra_context=None, next_override=None,
         request.FILES or None, user=request.user)
     if request.method == "POST" and 'avatar' in request.FILES:
         if upload_avatar_form.is_valid():
+            if AVATAR_SINGLE_AVATAR:
+                Avatar.objects.filter(user=request.user).delete()
             avatar = Avatar(
                 user = request.user,
                 primary = True,
@@ -117,6 +119,7 @@ def change(request, extra_context=None, next_override=None,
             request,
             { 'avatar': avatar, 
               'avatars': avatars,
+              'show_avatars': False if AVATAR_SINGLE_AVATAR else True,
               'upload_avatar_form': upload_avatar_form,
               'primary_avatar_form': primary_avatar_form,
               'next': next_override or _get_next(request), }

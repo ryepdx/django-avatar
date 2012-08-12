@@ -12,7 +12,7 @@ from django.utils.encoding import smart_str
 from django.db.models import signals
 
 from avatar.tasks import create_default_thumbnails
-
+from django.contrib.auth.models import User
 
 try:
     from cStringIO import StringIO
@@ -32,6 +32,7 @@ from avatar.settings import (AVATAR_STORAGE_DIR, AVATAR_RESIZE_METHOD,
                              AVATAR_HASH_USERDIRNAMES, AVATAR_HASH_FILENAMES,
                              AVATAR_THUMB_QUALITY, AUTO_GENERATE_AVATAR_SIZES, 
                              AVATAR_USERDIRNAMES_AS_ID, AVATAR_STORAGE)
+                             AVATAR_SINGLE_AVATAR)
 
 
 def avatar_file_path(instance=None, filename=None, size=None, ext=None):
@@ -93,12 +94,15 @@ class Avatar(models.Model):
         avatars = Avatar.objects.filter(user=self.user)
         if self.pk:
             avatars = avatars.exclude(pk=self.pk)
-        if AVATAR_MAX_AVATARS_PER_USER > 1:
-            if self.primary:
-                avatars = avatars.filter(primary=True)
-                avatars.update(primary=False)
-        else:
+        if AVATAR_SINGLE_AVATAR:
             avatars.delete()
+        else:
+            if AVATAR_MAX_AVATARS_PER_USER > 1:
+                if self.primary:
+                    avatars = avatars.filter(primary=True)
+                    avatars.update(primary=False)
+            else:
+                avatars.delete()
         invalidate_cache(self.user)
         is_new = False
         if not self.id:
@@ -179,3 +183,5 @@ class Avatar(models.Model):
             size=size,
             ext=ext
         )
+
+signals.post_save.connect(create_default_thumbnails, sender=Avatar)
