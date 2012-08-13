@@ -95,7 +95,11 @@ class Avatar(models.Model):
                 avatars = avatars.filter(primary=True)
                 avatars.update(primary=False)
         else:
-            avatars.delete()
+            # Iterate through each one so that their delete()
+            # functions get called.
+            for av in avatars:
+                av.delete()
+        
             
         invalidate_cache(self.user)
         is_new = False
@@ -107,6 +111,10 @@ class Avatar(models.Model):
     
     def delete(self, *args, **kwargs):
         invalidate_cache(self.user)
+        for size in self.existing_thumbnail_sizes.split(','):
+            self.avatar.storage.delete(self.avatar_name(size))
+        self.avatar.storage.delete(self.avatar_name())
+        
         super(Avatar, self).delete(*args, **kwargs)
     
     def thumbnail_exists(self, size):
@@ -192,7 +200,7 @@ class Avatar(models.Model):
     def get_absolute_url(self, size=AVATAR_DEFAULT_SIZE):
         return self.avatar_url(size)
     
-    def avatar_name(self, size):
+    def avatar_name(self, size=None):
         ext = find_extension(AVATAR_THUMB_FORMAT)
         return avatar_file_path(
             instance=self,
