@@ -144,12 +144,7 @@ class Avatar(models.Model):
         # invalidate the cache of the thumbnail with the given size first
         invalidate_cache(self.user, size)
         try:
-			# The line below relies on the "upload_to" field.
-			# If you want to get rid of that column, one of the things you will
-			# need to do is comment out the line below and uncomment the line
-			# after it.
             orig = self.avatar.storage.open(self.avatar.name, 'rb').read()
-            #orig = avatar_storage.open(self.avatar.name, 'rb').read()
             image = Image.open(StringIO(orig))
         except IOError:
             return # What should we do here?  Render a "sorry, didn't work" img?
@@ -178,11 +173,7 @@ class Avatar(models.Model):
         else:
             thumb_file = ContentFile(orig)
 
-		# See above comment about the "upload_to" field.
-		# Commenting out the line below and uncommenting
-		# the line below it will allow you to remove it.
         thumb = self.avatar.storage.save(self.avatar_name(size), thumb_file)
-		#thumb = avatar_storage.save(self.avatar_name(size), thumb_file)
 
         # Save this image size in the database so we know what thumbnails have already been created
         size_string = str(size)

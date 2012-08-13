@@ -15,10 +15,19 @@ I wanted users to have just one avatar on my website, so I decided to look at th
 
 So I picked what seemed to me the most vigorously maintained fork and forked it with the intention of merging in as many as the other 90+ forks as possible.
 
-DANGER
-------
-16:20 August 12, 2012
+What's New?
+-----------
+- The delete method on Avatar objects actually deletes the underlying file and thumbnails now.
+- A number of template tags were added by various contributors.
+- Django 1.4 compatibility.
+- Celery is now required. Thumbnail generation is a Celery task in this fork. In the near future this will be optional, but a fork I merged in required it, so my fork does too now. I found this website helpful in getting things up and running with Celery: http://query7.com/tutorial-celery-with-django
+- Support for aspect ratio preservation.
+- Support for SSL with Gravatar, which should help all you folks plagued by "mixed content" warnings.
+- Support for using hashes of usernames (settings.AVATAR_HASH_USERDIRNAMES) or user IDs (settings.AVATAR_USERDIRNAMES_AS_ID) for avatar directory names.
+- Support for specifying which storage class you would like to use. (settings.AVATAR_STORAGE)
 
-I haven't tested this code since the last merge, so there may be tons of things broken. But time constraints dictate I stop for now, so I've pushed it. If it works, awesome. If not, feel free to push some fixes and contact me to get them merged in.
+Fitness for use
+---------------
 
-Thanks!
+Right now the code may or may not work. I have a copy running on my development box that uses the 'add' view just fine. But I haven't thoroughly tested the code just yet. There aren't tests for everything I've merged in yet. Those tests need to be written. Until they are, understand that there may be pretty obvious bugs lurking about that I just haven't caught yet. Especially since I just forked this and started playing with it today.
+
