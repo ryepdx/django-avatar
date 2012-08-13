@@ -76,8 +76,8 @@ def find_extension(format):
 class Avatar(models.Model):
     user = models.ForeignKey(User)
     primary = models.BooleanField(default=False)
-    avatar = models.ImageField(max_length=1024, upload_to=avatar_file_path, blank=True)
-	upload_to=avatar_file_path, storage=avatar_storage, blank=True)
+    avatar = models.ImageField(max_length=1024,
+        upload_to=avatar_file_path, storage=avatar_storage, blank=True)
     date_uploaded = models.DateTimeField(auto_now=True)
     existing_thumbnail_sizes = models.CommaSeparatedIntegerField(max_length=1024, blank=True)
     
@@ -111,10 +111,8 @@ class Avatar(models.Model):
         super(Avatar, self).delete(*args, **kwargs)
     
     def thumbnail_exists(self, size):
-		if self.existing_thumbnail_sizes:
-            if str(size) in self.existing_thumbnail_sizes.split(','):
-                return True
-        return False
+		return (self.existing_thumbnail_sizes and
+            str(size) in self.existing_thumbnail_sizes.split(','))
 	
 	# This is the older version of thumbnail_exists.
 	# It requires a little more I/O than the version here,
