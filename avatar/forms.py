@@ -8,8 +8,7 @@ from django.template.defaultfilters import filesizeformat
 
 from avatar.models import Avatar
 from avatar.settings import (AVATAR_MAX_AVATARS_PER_USER, AVATAR_MAX_SIZE,
-                             AVATAR_ALLOWED_FILE_EXTS, AVATAR_DEFAULT_SIZE,
-                             AVATAR_SINGLE_AVATAR)
+                             AVATAR_ALLOWED_FILE_EXTS, AVATAR_DEFAULT_SIZE)
 
 
 def avatar_img(avatar, size):
@@ -41,7 +40,7 @@ class UploadAvatarForm(forms.Form):
             raise forms.ValidationError(
                 _(u"Your file is too big (%(size)s), the maximum allowed size is %(max_valid_size)s") %
                 { 'size' : filesizeformat(data.size), 'max_valid_size' : filesizeformat(AVATAR_MAX_SIZE)} )
-        if AVATAR_SINGLE_AVATAR:
+        if AVATAR_MAX_AVATARS_PER_USER == 1:
             Avatar.objects.filter(user=self.user).delete()
         count = Avatar.objects.filter(user=self.user).count()
         if AVATAR_MAX_AVATARS_PER_USER > 1 and \
