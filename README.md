@@ -31,3 +31,4 @@ Fitness for use
 
 Right now the code may or may not work. I have a copy running on my development box that uses the 'add' view just fine. But I haven't thoroughly tested the code just yet. There aren't tests for everything I've merged in yet. Those tests need to be written. Until they are, understand that there may be pretty obvious bugs lurking about that I just haven't caught yet. Especially since I just forked this and started playing with it today.
 
+Also, I haven't finished merging everything in. Things will change. This is an unstable fork and not fit for use in production code in its present state.
