@@ -1,3 +1,4 @@
+from urlparse import urlparse
 from django.core.files.base import ContentFile
 from django.http import HttpResponseRedirect, HttpResponse, Http404
 from django.shortcuts import get_object_or_404, render_to_response
@@ -16,7 +17,7 @@ from avatar.signals import avatar_updated
 from avatar.util import get_primary_avatar, get_default_avatar_url
 
 def _validate_next_parameter(request, next):
-    parsed = urlparse.urlparse(next)
+    parsed = urlparse(next)
     if parsed and parsed.path:
         return parsed.path
     return None
