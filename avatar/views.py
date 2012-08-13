@@ -12,7 +12,7 @@ from django.contrib import messages
 
 from avatar.forms import PrimaryAvatarForm, DeleteAvatarForm, UploadAvatarForm
 from avatar.models import Avatar
-from avatar.settings import AVATAR_MAX_AVATARS_PER_USER, AVATAR_DEFAULT_SIZE, AVATAR_SINGLE_AVATAR
+from avatar.settings import AVATAR_MAX_AVATARS_PER_USER, AVATAR_DEFAULT_SIZE
 from avatar.signals import avatar_updated
 from avatar.util import get_primary_avatar, get_default_avatar_url
 
@@ -87,8 +87,6 @@ def add(request, extra_context=None, next_override=None,
         request.FILES or None, user=request.user)
     if request.method == "POST" and 'avatar' in request.FILES:
         if upload_avatar_form.is_valid():
-            if AVATAR_SINGLE_AVATAR:
-                Avatar.objects.filter(user=request.user).delete()
             avatar = Avatar(
                 user = request.user,
                 primary = True,
@@ -144,7 +142,7 @@ def change(request, extra_context=None, next_override=None,
             request,
             { 'avatar': avatar, 
               'avatars': avatars,
-              'show_avatars': False if AVATAR_SINGLE_AVATAR else True,
+              'show_avatars': (AVATAR_MAX_AVATARS_PER_USER > 1),
               'upload_avatar_form': upload_avatar_form,
               'primary_avatar_form': primary_avatar_form,
               'next': next_override or _get_next(request), }

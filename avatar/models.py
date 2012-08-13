@@ -31,7 +31,7 @@ from avatar.settings import (AVATAR_STORAGE_DIR, AVATAR_RESIZE_METHOD,
                              AVATAR_HASH_USERDIRNAMES, AVATAR_HASH_FILENAMES,
                              AVATAR_THUMB_QUALITY, AUTO_GENERATE_AVATAR_SIZES, 
                              AVATAR_USERDIRNAMES_AS_ID, AVATAR_STORAGE,
-                             AVATAR_DEFAULT_SIZE, AVATAR_SINGLE_AVATAR)
+                             AVATAR_DEFAULT_SIZE)
 
 avatar_storage = get_storage_class(AVATAR_STORAGE)()
 
@@ -89,15 +89,14 @@ class Avatar(models.Model):
         avatars = Avatar.objects.filter(user=self.user)
         if self.pk:
             avatars = avatars.exclude(pk=self.pk)
-        if AVATAR_SINGLE_AVATAR:
-            avatars.delete()
+        
+        if AVATAR_MAX_AVATARS_PER_USER > 1:
+            if self.primary:
+                avatars = avatars.filter(primary=True)
+                avatars.update(primary=False)
         else:
-            if AVATAR_MAX_AVATARS_PER_USER > 1:
-                if self.primary:
-                    avatars = avatars.filter(primary=True)
-                    avatars.update(primary=False)
-            else:
-                avatars.delete()
+            avatars.delete()
+            
         invalidate_cache(self.user)
         is_new = False
         if not self.id:
@@ -186,7 +185,7 @@ class Avatar(models.Model):
 
     def avatar_url(self, size=None):
         if size:
-            return self.avatar.storage.url(self.avatar_name(size)).lstrip('/')
+            return self.avatar.storage.url(self.avatar_name(size))
         else:
             return self.avatar.url
 
