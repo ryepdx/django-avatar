@@ -77,17 +77,20 @@ class Avatar(models.Model):
     user = models.ForeignKey(User)
     primary = models.BooleanField(default=False)
     avatar = models.ImageField(max_length=1024,
-        upload_to=avatar_file_path, storage=avatar_storage, blank=True)
+        					upload_to=avatar_file_path,
+							storage=avatar_storage,
+							blank=True)
     date_uploaded = models.DateTimeField(auto_now=True)
     existing_thumbnail_sizes = models.CommaSeparatedIntegerField(max_length=1024, blank=True)
     
     def __unicode__(self):
         return _(u'Avatar for %s') % self.user
-    
+
     def save(self, *args, **kwargs):
         square = kwargs.pop('square', False)
         avatars = Avatar.objects.filter(user=self.user)
-        if self.pk:
+        
+		if self.pk:
             avatars = avatars.exclude(pk=self.pk)
         
         if AVATAR_MAX_AVATARS_PER_USER > 1:
@@ -116,22 +119,12 @@ class Avatar(models.Model):
         self.avatar.storage.delete(self.avatar_name())
         
         super(Avatar, self).delete(*args, **kwargs)
-    
+
     def thumbnail_exists(self, size):
+		# Not a sure-fire way to tell, but a little faster than disk I/O.
 		return (self.existing_thumbnail_sizes and
             str(size) in self.existing_thumbnail_sizes.split(','))
-	
-	# This is the older version of thumbnail_exists.
-	# It requires a little more I/O than the version here,
-	# but if database size for the avatars table becomes
-	# an issue, you can always return to this version and
-	# delete the existing_thumbnail_sizes column.
-	# It's a tradeoff and I'm not sure which is better, so
-	# I'm just leaving this here for future developers
-	# in case they disagree with my decision.
-	#def thumbnail_exists(self, size):
-    #    return self.avatar.storage.exists(self.avatar_name(size))
-    
+
     def create_thumbnail(self, size, quality=None, square=False):
         """ Creates a thumbnail for this avatar. 
         
@@ -175,22 +168,9 @@ class Avatar(models.Model):
 
         thumb = self.avatar.storage.save(self.avatar_name(size), thumb_file)
 
-        # Save this image size in the database so we know what thumbnails have already been created
-        size_string = str(size)
-        if self.existing_thumbnail_sizes:
-            size_string = ',' + size_string
-        self.existing_thumbnail_sizes += size_string
-        self.save()
+    def avatar_url(self, size):
+        return self.avatar.storage.url(self.avatar_name(size))
 
-    def avatar_url(self, size=None):
-        if size:
-            return self.avatar.storage.url(self.avatar_name(size))
-        else:
-            return self.avatar.url
-
-    def get_absolute_url(self, size=AVATAR_DEFAULT_SIZE):
-        return self.avatar_url(size)
-    
     def avatar_name(self, size=None):
         ext = find_extension(AVATAR_THUMB_FORMAT)
         return avatar_file_path(

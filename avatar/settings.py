@@ -14,6 +14,7 @@ AVATAR_GRAVATAR_BACKUP = getattr(settings, 'AVATAR_GRAVATAR_BACKUP', True)
 AVATAR_GRAVATAR_DEFAULT = getattr(settings, 'AVATAR_GRAVATAR_DEFAULT', None)
 AVATAR_GRAVATAR_SSL = getattr(settings, 'AVATAR_GRAVATAR_SSL', False)
 AVATAR_DEFAULT_URL = getattr(settings, 'AVATAR_DEFAULT_URL', 'avatar/img/default.jpg')
+AVATAR_DEFAULT_USE_SECURE_MEDIA_URL = getattr(settings, 'AVATAR_DEFAULT_USE_SECURE_MEDIA_URL', True)
 AVATAR_MAX_AVATARS_PER_USER = getattr(settings, 'AVATAR_MAX_AVATARS_PER_USER', 42)
 AVATAR_MAX_SIZE = getattr(settings, 'AVATAR_MAX_SIZE', 1024 * 1024)
 AVATAR_THUMB_FORMAT = getattr(settings, 'AVATAR_THUMB_FORMAT', "JPEG")
@@ -24,3 +25,6 @@ AVATAR_USERDIRNAMES_AS_ID = getattr(settings, 'AVATAR_USERDIRNAMES_AS_ID', False
 AVATAR_ALLOWED_FILE_EXTS = getattr(settings, 'AVATAR_ALLOWED_FILE_EXTS', None)
 AVATAR_CACHE_TIMEOUT = getattr(settings, 'AVATAR_CACHE_TIMEOUT', 60 * 60)
 AVATAR_STORAGE = getattr(settings, 'AVATAR_STORAGE', settings.DEFAULT_FILE_STORAGE)
+
+# Whenever an avatar is requested, check if it actually exists. Create it if it doesn't.
+AVATAR_CHECK_IF_PRIMARY_EXISTS = getattr(settings, 'AVATAR_CHECK_IF_PRIMARY_EXISTS', False)

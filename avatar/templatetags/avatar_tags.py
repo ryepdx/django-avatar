@@ -18,6 +18,10 @@ register = template.Library()
 @cache_result
 @register.simple_tag
 def avatar_url(user, size=AVATAR_DEFAULT_SIZE):
+
+    if not user.is_authenticated():
+        return get_default_avatar_url()
+
     avatar = get_primary_avatar(user, size=size)
     if avatar:
         return avatar.avatar_url(size)
@@ -33,6 +37,29 @@ def avatar_url(user, size=AVATAR_DEFAULT_SIZE):
             return "%s.gravatar.com/avatar/%s/?%s" % (
                 prefix,
                 md5_constructor(user.email).hexdigest(),
+                urllib.urlencode(params))
+        else:
+            return get_default_avatar_url()
+
+@cache_result
+@register.simple_tag
+def avatar_url_from_email(email, size=AVATAR_DEFAULT_SIZE):
+    try:
+        user = User.objects.get(email = email)
+        return avatar_url(user, size)
+    except User.DoesNotExist:
+        
+        if AVATAR_GRAVATAR_BACKUP:
+            params = {'s': str(size)}
+            if AVATAR_GRAVATAR_DEFAULT:
+                params['d'] = AVATAR_GRAVATAR_DEFAULT
+            if AVATAR_GRAVATAR_SECURE:
+                gravatar_base = 'https://secure.gravatar.com'
+            else:
+                gravatar_base = 'http://www.gravatar.com'
+            return "%s/avatar/%s/?%s" % ( 
+                gravatar_base, 
+                md5_constructor(email).hexdigest(),
                 urllib.urlencode(params))
         else:
             return get_default_avatar_url()

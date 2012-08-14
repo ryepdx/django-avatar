@@ -82,20 +82,21 @@ def add(request, extra_context=None, next_override=None,
         upload_form=UploadAvatarForm, *args, **kwargs):
     if extra_context is None:
         extra_context = {}
-    avatar, avatars = _get_avatars(request.user)
+    user = kwargs.pop('user',None) or request.user    
+    avatar, avatars = _get_avatars(user)
     upload_avatar_form = upload_form(request.POST or None,
-        request.FILES or None, user=request.user)
+        request.FILES or None, user=user)
     if request.method == "POST" and 'avatar' in request.FILES:
         if upload_avatar_form.is_valid():
             avatar = Avatar(
-                user = request.user,
+                user = user,
                 primary = True,
             )
             image_file = request.FILES['avatar']
             avatar.avatar.save(image_file.name, image_file)
             avatar.save()
             messages.success(request, _("Successfully uploaded a new avatar."))
-            avatar_updated.send(sender=Avatar, user=request.user, avatar=avatar)
+            avatar_updated.send(sender=Avatar, user=user, avatar=avatar)
             return HttpResponseRedirect(next_override or _get_next(request))
     return render_to_response(
             'avatar/add.html',
@@ -237,6 +238,26 @@ def avatar(request, username, id, template_name="avatar/avatar.html"):
 def render_primary(request, extra_context={}, user=None, size=AVATAR_DEFAULT_SIZE, *args, **kwargs):
     size = int(size)
     avatar = get_primary_avatar(user, size=size)
+	return _get_render_primary_response(avatar)
+
+def render_primary_id(request, extra_context={}, user_id=None, size=AVATAR_DEFAULT_SIZE, *args, **kwargs):
+    size = int(size)
+
+    try:
+        # Order by -primary first; this means if a primary=True avatar exists
+        # it will be first, and then ordered by date uploaded, otherwise a
+        # primary=False avatar will be first.  Exactly the fallback behavior we
+        # want.
+        avatar = Avatar.objects.filter(user__id=user_id).order_by("-primary", "-date_uploaded")[0]
+    except IndexError:
+        avatar = None
+    if avatar:
+        if not avatar.thumbnail_exists(size):
+            avatar.create_thumbnail(size)
+
+	return _get_render_primary_response(avatar)
+
+def _get_render_primary_response(avatar=None):
     if avatar:
         # FIXME: later, add an option to render the resized avatar dynamically
         # instead of redirecting to an already created static file. This could

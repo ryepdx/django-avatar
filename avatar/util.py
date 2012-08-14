@@ -4,7 +4,7 @@ from django.core.cache import cache
 from django.contrib.auth.models import User
 
 from avatar.settings import (AVATAR_DEFAULT_URL, AVATAR_CACHE_TIMEOUT,
-                             AUTO_GENERATE_AVATAR_SIZES, AVATAR_DEFAULT_SIZE)
+                             AUTO_GENERATE_AVATAR_SIZES, AVATAR_DEFAULT_SIZE, AVATAR_CHECK_IF_PRIMARY_EXISTS)
 
 cached_funcs = set()
 
@@ -46,7 +46,10 @@ def invalidate_cache(user, size=None):
 def get_default_avatar_url():
     base_url = getattr(settings, 'STATIC_URL', None)
     if not base_url:
-        base_url = getattr(settings, 'MEDIA_URL', '')
+        if getattr(settings, 'AVATAR_DEFAULT_USE_SECURE_MEDIA_URL', True):
+            base_url = getattr(settings, 'SECURE_MEDIA_URL', '')
+        else:
+            base_url = getattr(settings, 'MEDIA_URL', '')
     # Don't use base_url if the default avatar url starts with http:// of https://
     if AVATAR_DEFAULT_URL.startswith('http://') or AVATAR_DEFAULT_URL.startswith('https://'):
         return AVATAR_DEFAULT_URL
@@ -77,7 +80,7 @@ def get_primary_avatar(user, size=AVATAR_DEFAULT_SIZE):
         avatar.user = user
     except IndexError:
         avatar = None
-    if avatar:
+    if AVATAR_CHECK_IF_PRIMARY_EXISTS and avatar:
         if not avatar.thumbnail_exists(size):
             avatar.create_thumbnail(size)
     return avatar
