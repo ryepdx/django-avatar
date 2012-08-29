@@ -77,9 +77,9 @@ class Avatar(models.Model):
     user = models.ForeignKey(User)
     primary = models.BooleanField(default=False)
     avatar = models.ImageField(max_length=1024,
-        					upload_to=avatar_file_path,
-							storage=avatar_storage,
-							blank=True)
+                            upload_to=avatar_file_path,
+                            storage=avatar_storage,
+                            blank=True)
     date_uploaded = models.DateTimeField(auto_now=True)
     existing_thumbnail_sizes = models.CommaSeparatedIntegerField(max_length=1024, blank=True)
     
@@ -121,8 +121,8 @@ class Avatar(models.Model):
         super(Avatar, self).delete(*args, **kwargs)
 
     def thumbnail_exists(self, size):
-		# Not a sure-fire way to tell, but a little faster than disk I/O.
-		return (self.existing_thumbnail_sizes and
+        # Not a sure-fire way to tell, but a little faster than disk I/O.
+        return (self.existing_thumbnail_sizes and
             str(size) in self.existing_thumbnail_sizes.split(','))
 
     def create_thumbnail(self, size, quality=None, square=False):

@@ -239,7 +239,7 @@ def avatar(request, username, id, template_name="avatar/avatar.html"):
 def render_primary(request, extra_context={}, user=None, size=AVATAR_DEFAULT_SIZE, *args, **kwargs):
     size = int(size)
     avatar = get_primary_avatar(user, size=size)
-	return _get_render_primary_response(avatar)
+    return _get_render_primary_response(avatar)
 
 def render_primary_id(request, extra_context={}, user_id=None, size=AVATAR_DEFAULT_SIZE, *args, **kwargs):
     size = int(size)
@@ -256,7 +256,7 @@ def render_primary_id(request, extra_context={}, user_id=None, size=AVATAR_DEFAU
         if not avatar.thumbnail_exists(size):
             avatar.create_thumbnail(size)
 
-	return _get_render_primary_response(avatar)
+    return _get_render_primary_response(avatar)
 
 def _get_render_primary_response(avatar=None):
     if avatar:
