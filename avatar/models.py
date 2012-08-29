@@ -90,7 +90,7 @@ class Avatar(models.Model):
         square = kwargs.pop('square', False)
         avatars = Avatar.objects.filter(user=self.user)
         
-		if self.pk:
+        if self.pk:
             avatars = avatars.exclude(pk=self.pk)
         
         if AVATAR_MAX_AVATARS_PER_USER > 1:
