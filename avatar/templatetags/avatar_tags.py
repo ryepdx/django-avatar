@@ -1,6 +1,7 @@
 import urllib
 
 from django import template
+from django.template.loader import render_to_string
 from django.utils.translation import ugettext as _
 from django.utils.hashcompat import md5_constructor
 from django.core.urlresolvers import reverse
@@ -66,7 +67,7 @@ def avatar_url_from_email(email, size=AVATAR_DEFAULT_SIZE):
 
 @cache_result
 @register.simple_tag
-def avatar(user, size=AVATAR_DEFAULT_SIZE):
+def avatar(user, size=AVATAR_DEFAULT_SIZE, **kwargs):
     if not isinstance(user, User):
         try:
             user = User.objects.get(username=user)
@@ -78,8 +79,13 @@ def avatar(user, size=AVATAR_DEFAULT_SIZE):
     else:
         alt = unicode(user)
         url = avatar_url(user, size)
-    return """<img src="%s" alt="%s" width="%s" height="%s" />""" % (url, alt,
-        size, size)
+    context = dict(kwargs, **{
+        'user': user,
+        'url': url,
+        'alt': alt,
+        'size': size,
+    })
+    return render_to_string('avatar/avatar_tag.html', context)
 
 
 @register.filter
